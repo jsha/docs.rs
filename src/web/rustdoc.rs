@@ -318,7 +318,10 @@ pub fn rustdoc_html_server_handler(req: &mut Request) -> IronResult<Response> {
             // to prevent cloudfront caching the wrong artifacts on URLs with loose semver
             // versions, redirect the browser to the returned version instead of loading it
             // immediately
-            return redirect(&name, &v, &req_path);
+            if url_version != Some("latest") {
+                return redirect(&name, &v, &req_path);
+            }
+            v
         }
     };
 
