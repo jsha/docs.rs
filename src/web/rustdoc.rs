@@ -734,6 +734,8 @@ mod test {
             assert_success(base, web)?;
             assert_redirect("/dummy/0.1.0/x86_64-unknown-linux-gnu/dummy/", base, web)?;
 
+            assert_success("/dummy/latest/dummy/", web)?;
+
             // set an explicit target that requires cross-compile
             let target = "x86_64-pc-windows-msvc";
             env.fake_release()

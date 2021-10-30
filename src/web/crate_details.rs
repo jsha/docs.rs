@@ -326,7 +326,7 @@ pub fn crate_details_handler(req: &mut Request) -> IronResult<Response> {
 mod tests {
     use super::*;
     use crate::index::api::CrateOwner;
-    use crate::test::{wrapper, TestDatabase};
+    use crate::test::{assert_redirect, wrapper, TestDatabase};
     use anyhow::{Context, Error};
     use kuchiki::traits::TendrilSink;
     use std::collections::HashMap;
@@ -967,6 +967,29 @@ mod tests {
                 assert!(!url.contains("/target-redirect/"));
                 assert_eq!(rel, "");
             }
+
+            Ok(())
+        });
+    }
+
+    #[test]
+    fn crate_redirects_to_latest() {
+        wrapper(|env| {
+            env.fake_release()
+                .name("dummy")
+                .version("0.4.0")
+                .rustdoc_file("dummy/index.html")
+                .rustdoc_file("x86_64-pc-windows-msvc/dummy/index.html")
+                .default_target("x86_64-unknown-linux-gnu")
+                .add_target("x86_64-pc-windows-msvc")
+                .create()?;
+            let web = env.frontend();
+
+            let response = env.frontend().get("/crate/dummy/latest").send()?;
+            assert!(response.status().is_success());
+
+            assert_redirect("/crate/dummy/latest/", "/crate/dummy/latest", web)?;
+            assert_redirect("/crate/dummy", "/crate/dummy/latest", web)?;
 
             Ok(())
         });
