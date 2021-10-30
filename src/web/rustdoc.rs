@@ -1074,7 +1074,7 @@ mod test {
                 .create()?;
 
             let web = env.frontend();
-            assert_redirect("/fake%2Dcrate", "/fake-crate/0.0.1/fake_crate/", web)?;
+            assert_redirect("/fake%2Dcrate", "/fake-crate/latest/fake_crate/", web)?;
 
             Ok(())
         });
@@ -1104,12 +1104,12 @@ mod test {
 
             let web = env.frontend();
 
-            assert_redirect("/dummy_dash", "/dummy-dash/0.2.0/dummy_dash/", web)?;
+            assert_redirect("/dummy_dash", "/dummy-dash/latest/dummy_dash/", web)?;
             assert_redirect("/dummy_dash/*", "/dummy-dash/0.2.0/dummy_dash/", web)?;
             assert_redirect("/dummy_dash/0.1.0", "/dummy-dash/0.1.0/dummy_dash/", web)?;
             assert_redirect(
                 "/dummy-underscore",
-                "/dummy_underscore/0.2.0/dummy_underscore/",
+                "/dummy_underscore/latest/dummy_underscore/",
                 web,
             )?;
             assert_redirect(
@@ -1124,7 +1124,7 @@ mod test {
             )?;
             assert_redirect(
                 "/dummy-mixed_separators",
-                "/dummy_mixed-separators/0.2.0/dummy_mixed_separators/",
+                "/dummy_mixed-separators/latest/dummy_mixed_separators/",
                 web,
             )?;
             assert_redirect(

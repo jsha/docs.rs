@@ -743,7 +743,7 @@ mod test {
                 .create()
                 .unwrap();
             let web = env.frontend();
-            assert_redirect("/bat//", "/bat/0.2.0/bat/", web)?;
+            assert_redirect("/bat//", "/bat/latest/bat/", web)?;
             Ok(())
         })
     }
