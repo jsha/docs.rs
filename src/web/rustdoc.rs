@@ -156,7 +156,11 @@ pub fn rustdoc_redirector_handler(req: &mut Request) -> IronResult<Response> {
         // use that instead
         crate_name = new_name;
     }
-    let (version, id) = v.version.into_parts();
+    let (mut version, id) = v.version.into_parts();
+
+    if req_version == None || req_version == Some("latest") {
+        version = "latest".to_string()
+    }
 
     // get target name and whether it has docs
     // FIXME: This is a bit inefficient but allowing us to use less code in general

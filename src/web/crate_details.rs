@@ -281,6 +281,14 @@ pub fn crate_details_handler(req: &mut Request) -> IronResult<Response> {
     let name = cexpect!(req, router.find("name"));
     let req_version = router.find("version");
 
+    if req_version == None {
+        let url = ctry!(
+            req,
+            Url::parse(&format!("{}/crate/{}/latest", redirect_base(req), name,)),
+        );
+        return Ok(super::redirect(url));
+    }
+
     let mut conn = extension!(req, Pool).get()?;
 
     match match_version(&mut conn, name, req_version).and_then(|m| m.assume_exact())? {
@@ -292,17 +300,24 @@ pub fn crate_details_handler(req: &mut Request) -> IronResult<Response> {
         }
 
         MatchSemver::Semver((version, _)) => {
-            let url = ctry!(
-                req,
-                Url::parse(&format!(
-                    "{}/crate/{}/{}",
-                    redirect_base(req),
-                    name,
-                    version
-                )),
-            );
+            if req_version == Some("latest") {
+                let updater = extension!(req, RepositoryStatsUpdater);
+                let details = cexpect!(req, CrateDetails::new(&mut conn, name, &version, updater));
 
-            Ok(super::redirect(url))
+                CrateDetailsPage { details }.into_response(req)
+            } else {
+                let url = ctry!(
+                    req,
+                    Url::parse(&format!(
+                        "{}/crate/{}/{}",
+                        redirect_base(req),
+                        name,
+                        version
+                    )),
+                );
+
+                Ok(super::redirect(url))
+            }
         }
     }
 }
