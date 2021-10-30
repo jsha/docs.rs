@@ -299,25 +299,24 @@ pub fn crate_details_handler(req: &mut Request) -> IronResult<Response> {
             CrateDetailsPage { details }.into_response(req)
         }
 
+        MatchSemver::Latest((version, _)) => {
+            let updater = extension!(req, RepositoryStatsUpdater);
+            let details = cexpect!(req, CrateDetails::new(&mut conn, name, &version, updater));
+
+            CrateDetailsPage { details }.into_response(req)
+        }
         MatchSemver::Semver((version, _)) => {
-            if req_version == Some("latest") {
-                let updater = extension!(req, RepositoryStatsUpdater);
-                let details = cexpect!(req, CrateDetails::new(&mut conn, name, &version, updater));
+            let url = ctry!(
+                req,
+                Url::parse(&format!(
+                    "{}/crate/{}/{}",
+                    redirect_base(req),
+                    name,
+                    version
+                )),
+            );
 
-                CrateDetailsPage { details }.into_response(req)
-            } else {
-                let url = ctry!(
-                    req,
-                    Url::parse(&format!(
-                        "{}/crate/{}/{}",
-                        redirect_base(req),
-                        name,
-                        version
-                    )),
-                );
-
-                Ok(super::redirect(url))
-            }
+            Ok(super::redirect(url))
         }
     }
 }

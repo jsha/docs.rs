@@ -244,6 +244,8 @@ enum MatchSemver {
     /// `match_version` was given a semver version requirement, which matched the given saved crate
     /// version.
     Semver((String, i32)),
+    // `match_Version` was given the string "latest", which matches the given saved crate version.
+    Latest((String, i32)),
 }
 
 impl MatchSemver {
@@ -251,7 +253,9 @@ impl MatchSemver {
     /// matched version string and id.
     pub fn into_parts(self) -> (String, i32) {
         match self {
-            MatchSemver::Exact((v, i)) | MatchSemver::Semver((v, i)) => (v, i),
+            MatchSemver::Exact((v, i))
+            | MatchSemver::Semver((v, i))
+            | MatchSemver::Latest((v, i)) => (v, i),
         }
     }
 }
@@ -267,12 +271,12 @@ impl MatchSemver {
 fn match_version(
     conn: &mut Client,
     name: &str,
-    version: Option<&str>,
+    input_version: Option<&str>,
 ) -> Result<MatchVersion, Nope> {
     // version is an Option<&str> from router::Router::get, need to decode first
     use iron::url::percent_encoding::percent_decode;
 
-    let req_version = version
+    let req_version = input_version
         .and_then(|v| percent_decode(v.as_bytes()).decode_utf8().ok())
         .map(|v| {
             if v == "newest" || v == "latest" {
@@ -351,7 +355,11 @@ fn match_version(
     {
         return Ok(MatchVersion {
             corrected_name,
-            version: MatchSemver::Semver((version.to_string(), *id)),
+            version: if input_version == Some("latest") {
+                MatchSemver::Latest((version.to_string(), *id))
+            } else {
+                MatchSemver::Semver((version.to_string(), *id))
+            },
         });
     }
 

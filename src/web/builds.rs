@@ -52,6 +52,7 @@ pub fn build_list_handler(req: &mut Request) -> IronResult<Response> {
     let version =
         match match_version(&mut conn, name, req_version).and_then(|m| m.assume_exact())? {
             MatchSemver::Exact((version, _)) => version,
+            MatchSemver::Latest((version, _)) => version,
 
             MatchSemver::Semver((version, _)) => {
                 let ext = if is_json { ".json" } else { "" };
@@ -307,7 +308,7 @@ mod tests {
     }
 
     #[test]
-    fn latest_redirect() {
+    fn latest_200() {
         wrapper(|env| {
             env.fake_release()
                 .name("aquarelle")
@@ -329,19 +330,13 @@ mod tests {
                 .frontend()
                 .get("/crate/aquarelle/latest/builds")
                 .send()?;
-            assert!(resp
-                .url()
-                .as_str()
-                .ends_with("/crate/aquarelle/0.2.0/builds"));
+            assert!(resp.status().is_success());
 
             let resp_json = env
                 .frontend()
                 .get("/crate/aquarelle/latest/builds.json")
                 .send()?;
-            assert!(resp_json
-                .url()
-                .as_str()
-                .ends_with("/crate/aquarelle/0.2.0/builds.json"));
+            assert!(resp_json.status().is_success());
 
             Ok(())
         });
