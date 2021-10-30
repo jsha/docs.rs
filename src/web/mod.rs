@@ -345,24 +345,14 @@ fn match_version(
         versions_sem
     };
 
-    let found_version = versions_sem
+    if let Some((version, id)) = versions_sem
         .iter()
-        .find(|(vers, _)| req_sem_ver.matches(vers));
-
-    match found_version {
-        Some((version, id)) if req_version == "*" => {
-            return Ok(MatchVersion {
-                corrected_name,
-                version: MatchSemver::Exact((version.to_string(), *id)),
-            });
-        }
-        Some((version, id)) => {
-            return Ok(MatchVersion {
-                corrected_name,
-                version: MatchSemver::Semver((version.to_string(), *id)),
-            })
-        }
-        None => {}
+        .find(|(vers, _)| req_sem_ver.matches(vers))
+    {
+        return Ok(MatchVersion {
+            corrected_name,
+            version: MatchSemver::Semver((version.to_string(), *id)),
+        });
     }
 
     // semver is acting weird for '*' (any) range if a crate only has pre-release versions
@@ -372,7 +362,7 @@ fn match_version(
             .first()
             .map(|v| MatchVersion {
                 corrected_name,
-                version: MatchSemver::Exact((v.0.to_string(), v.1)),
+                version: MatchSemver::Semver((v.0.to_string(), v.1)),
             })
             .ok_or(Nope::VersionNotFound);
     }
