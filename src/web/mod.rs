@@ -244,7 +244,7 @@ enum MatchSemver {
     /// `match_version` was given a semver version requirement, which matched the given saved crate
     /// version.
     Semver((String, i32)),
-    // `match_Version` was given the string "latest", which matches the given saved crate version.
+    // `match_version` was given the string "latest", which matches the given saved crate version.
     Latest((String, i32)),
 }
 

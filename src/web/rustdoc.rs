@@ -308,7 +308,7 @@ pub fn rustdoc_html_server_handler(req: &mut Request) -> IronResult<Response> {
     let release_found = match_version(&mut conn, &name, url_version)?;
 
     let version = match release_found.version {
-        MatchSemver::Exact((version, _)) => {
+        MatchSemver::Exact((version, _)) | MatchSemver::Latest((version, _)) => {
             // Redirect when the requested crate name isn't correct
             if let Some(name) = release_found.corrected_name {
                 return redirect(&name, &version, &req_path);
@@ -324,7 +324,6 @@ pub fn rustdoc_html_server_handler(req: &mut Request) -> IronResult<Response> {
             // immediately
             return redirect(&name, &v, &req_path);
         }
-        MatchSemver::Latest((v, _)) => v,
     };
 
     let updater = extension!(req, RepositoryStatsUpdater);

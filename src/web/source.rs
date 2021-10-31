@@ -179,8 +179,7 @@ pub fn source_browser_handler(req: &mut Request) -> IronResult<Response> {
         crate_name = new_name;
     }
     let version = match v.version {
-        MatchSemver::Latest((version, _)) => version,
-        MatchSemver::Exact((version, _)) => version,
+        MatchSemver::Latest((version, _)) | MatchSemver::Exact((version, _)) => version,
         MatchSemver::Semver((version, _)) => {
             let url = ctry!(
                 req,
