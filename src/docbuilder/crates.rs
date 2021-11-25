@@ -1,5 +1,5 @@
 use crate::error::Result;
-use anyhow::{ensure, Context};
+use anyhow::Context;
 use serde_json::Value;
 use std::io::prelude::*;
 use std::io::BufReader;
@@ -50,7 +50,6 @@ where
     }
 
     if !name.is_empty() {
-        versions.reverse();
         for version in versions {
             func(&name, &version);
         }
@@ -63,8 +62,6 @@ pub fn crates_from_path<F>(path: &Path, func: &mut F) -> Result<()>
 where
     F: FnMut(&str, &str),
 {
-    ensure!(!path.is_dir(), "Not a directory");
-
     for file in path.read_dir()? {
         let file = file?;
         let path = file.path();
