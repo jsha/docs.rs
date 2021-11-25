@@ -260,7 +260,7 @@ mod tests {
                 .create()?;
 
             let resp = env.frontend().get("/crate/foo/latest/features").send()?;
-            assert!(resp.status().is_success());
+            assert!(resp.url().as_str().ends_with("/crate/foo/latest/features"));
             Ok(())
         });
     }

@@ -330,13 +330,19 @@ mod tests {
                 .frontend()
                 .get("/crate/aquarelle/latest/builds")
                 .send()?;
-            assert!(resp.status().is_success());
+            assert!(resp
+                .url()
+                .as_str()
+                .ends_with("/crate/aquarelle/latest/builds"));
 
             let resp_json = env
                 .frontend()
                 .get("/crate/aquarelle/latest/builds.json")
                 .send()?;
-            assert!(resp_json.status().is_success());
+            assert!(resp_json
+                .url()
+                .as_str()
+                .ends_with("/crate/aquarelle/latest/builds.json"));
 
             Ok(())
         });
