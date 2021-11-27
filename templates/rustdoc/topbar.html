@@ -1,7 +1,7 @@
 {%- import "macros.html" as macros -%}
 
 {# The url of the current release, `/crate/:name/:version` #}
-{%- set crate_url = "/crate/" ~ metadata.name ~ "/" ~ metadata.version -%}
+{%- set crate_url = "/crate/" ~ metadata.name ~ "/" ~ metadata.version_or_latest -%}
 
 {%- include "header/topbar_begin.html" -%}{#
 extra whitespace unremovable, need to use html tags unaffacted by whitespace T_T
@@ -211,10 +211,10 @@ extra whitespace unremovable, need to use html tags unaffacted by whitespace T_T
                     because the documentation root page is guaranteed to exist for all targets.
                 #}
                 {%- if use_direct_platform_links -%}
-                    {%- set target_url = "/" ~ metadata.name ~ "/" ~ metadata.version ~ "/" ~ target ~ "/" ~ inner_path -%}
+                    {%- set target_url = "/" ~ metadata.name ~ "/" ~ metadata.version_or_latest ~ "/" ~ target ~ "/" ~ inner_path -%}
                     {%- set target_no_follow = "" -%}
                 {%- else -%}
-                    {%- set target_url = "/crate/" ~ metadata.name ~ "/" ~ metadata.version ~ "/target-redirect/" ~ target ~ "/" ~ inner_path -%}
+                    {%- set target_url = "/crate/" ~ metadata.name ~ "/" ~ metadata.version_or_latest ~ "/target-redirect/" ~ target ~ "/" ~ inner_path -%}
                     {%- set target_no_follow = "nofollow" -%}
                 {%- endif -%}
 

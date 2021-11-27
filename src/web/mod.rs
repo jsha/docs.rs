@@ -523,6 +523,10 @@ fn redirect_base(req: &Request) -> String {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub(crate) struct MetaData {
     pub(crate) name: String,
+    // If we're on a page with /latest/ in the URL, the string "latest".
+    // Otherwise, the version as a string.
+    pub(crate) version_or_latest: String,
+    // The exact version of the crate being shown. Never contains "latest".
     pub(crate) version: String,
     pub(crate) description: Option<String>,
     pub(crate) target_name: Option<String>,
@@ -556,6 +560,7 @@ impl MetaData {
         Some(MetaData {
             name: row.get(0),
             version: row.get(1),
+            version_or_latest: "latest".to_string(), //XXX
             description: row.get(2),
             target_name: row.get(3),
             rustdoc_status: row.get(4),

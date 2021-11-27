@@ -150,6 +150,8 @@ impl CrateDetails {
         let metadata = MetaData {
             name: krate.get("name"),
             version: krate.get("version"),
+            ///XXX
+            version_or_latest: "latest".to_string(),
             description: krate.get("description"),
             rustdoc_status: krate.get("rustdoc_status"),
             target_name: krate.get("target_name"),
