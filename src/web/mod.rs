@@ -984,6 +984,30 @@ mod test {
     }
 
     #[test]
+    fn metadata_from_crate() {
+        wrapper(|env| {
+            release("0.1.0", env);
+            let mut conn = env.db().conn();
+            let metadata = MetaData::from_crate(&mut conn, "foo", "0.1.0", "latest");
+            assert_eq!(
+                metadata.unwrap(),
+                MetaData {
+                    name: "foo".to_string(),
+                    version_or_latest: "latest".to_string(),
+                    version: "0.1.0".to_string(),
+                    description: Some("Fake package".to_string()),
+                    target_name: Some("foo".to_string()),
+                    rustdoc_status: true,
+                    default_target: "x86_64-unknown-linux-gnu".to_string(),
+                    doc_targets: vec![],
+                    yanked: false,
+                },
+            );
+            Ok(())
+        })
+    }
+
+    #[test]
     fn test_tabindex_is_present_on_topbar_crate_search_input() {
         wrapper(|env| {
             release("0.1.0", env);
