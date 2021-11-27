@@ -341,6 +341,7 @@ mod tests {
             &mut db.conn(),
             package,
             version,
+            version,
             db.repository_stats_updater(),
         )
         .with_context(|| anyhow::anyhow!("could not fetch crate details"))?;
@@ -474,6 +475,7 @@ mod tests {
                 &mut db.conn(),
                 "foo",
                 "0.2.0",
+                "0.2.0",
                 db.repository_stats_updater(),
             )
             .unwrap();
@@ -549,6 +551,7 @@ mod tests {
                     &mut db.conn(),
                     "foo",
                     version,
+                    version,
                     db.repository_stats_updater(),
                 )
                 .unwrap();
@@ -578,6 +581,7 @@ mod tests {
                 let details = CrateDetails::new(
                     &mut db.conn(),
                     "foo",
+                    version,
                     version,
                     db.repository_stats_updater(),
                 )
@@ -609,6 +613,7 @@ mod tests {
                 let details = CrateDetails::new(
                     &mut db.conn(),
                     "foo",
+                    version,
                     version,
                     db.repository_stats_updater(),
                 )
@@ -648,6 +653,7 @@ mod tests {
                 let details = CrateDetails::new(
                     &mut db.conn(),
                     "foo",
+                    version,
                     version,
                     db.repository_stats_updater(),
                 )
@@ -711,6 +717,7 @@ mod tests {
                 &mut db.conn(),
                 "foo",
                 "0.0.1",
+                "0.0.1",
                 db.repository_stats_updater(),
             )
             .unwrap();
@@ -741,6 +748,7 @@ mod tests {
                 &mut db.conn(),
                 "foo",
                 "0.0.1",
+                "0.0.1",
                 db.repository_stats_updater(),
             )
             .unwrap();
@@ -770,6 +778,7 @@ mod tests {
                 &mut db.conn(),
                 "foo",
                 "0.0.1",
+                "0.0.1",
                 db.repository_stats_updater(),
             )
             .unwrap();
@@ -793,6 +802,7 @@ mod tests {
             let details = CrateDetails::new(
                 &mut db.conn(),
                 "foo",
+                "0.0.1",
                 "0.0.1",
                 db.repository_stats_updater(),
             )

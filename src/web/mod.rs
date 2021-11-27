@@ -917,6 +917,7 @@ mod test {
         let mut metadata = MetaData {
             name: "serde".to_string(),
             version: "1.0.0".to_string(),
+            version_or_latest: "1.0.0".to_string(),
             description: Some("serde does stuff".to_string()),
             target_name: None,
             rustdoc_status: true,
@@ -931,6 +932,7 @@ mod test {
         let correct_json = json!({
             "name": "serde",
             "version": "1.0.0",
+            "version_or_latest": "1.0.0",
             "description": "serde does stuff",
             "target_name": null,
             "rustdoc_status": true,
@@ -948,6 +950,7 @@ mod test {
         let correct_json = json!({
             "name": "serde",
             "version": "1.0.0",
+            "version_or_latest": "1.0.0",
             "description": "serde does stuff",
             "target_name": "serde_lib_name",
             "rustdoc_status": true,
@@ -965,6 +968,7 @@ mod test {
         let correct_json = json!({
             "name": "serde",
             "version": "1.0.0",
+            "version_or_latest": "1.0.0",
             "description": null,
             "target_name": "serde_lib_name",
             "rustdoc_status": true,
