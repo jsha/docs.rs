@@ -307,14 +307,23 @@ pub fn rustdoc_html_server_handler(req: &mut Request) -> IronResult<Response> {
     // * If there is a semver (but not exact) match, redirect to the exact version.
     let release_found = match_version(&mut conn, &name, url_version)?;
 
-    let version = match release_found.version {
-        MatchSemver::Exact((version, _)) | MatchSemver::Latest((version, _)) => {
+    let (version, version_or_latest) = match release_found.version {
+        MatchSemver::Exact((version, _)) => {
             // Redirect when the requested crate name isn't correct
             if let Some(name) = release_found.corrected_name {
                 return redirect(&name, &version, &req_path);
             }
 
-            version
+            (version.clone(), version)
+        }
+
+        MatchSemver::Latest((version, _)) => {
+            // Redirect when the requested crate name isn't correct
+            if let Some(name) = release_found.corrected_name {
+                return redirect(&name, "latest", &req_path);
+            }
+
+            (version, "latest".to_string())
         }
 
         // Redirect when the requested version isn't correct
@@ -332,12 +341,15 @@ pub fn rustdoc_html_server_handler(req: &mut Request) -> IronResult<Response> {
 
     // Get the crate's details from the database
     // NOTE: we know this crate must exist because we just checked it above (or else `match_version` is buggy)
-    let krate = cexpect!(req, CrateDetails::new(&mut conn, &name, &version, updater));
+    let krate = cexpect!(
+        req,
+        CrateDetails::new(&mut conn, &name, &version, &version_or_latest, updater)
+    );
 
     // if visiting the full path to the default target, remove the target from the path
     // expects a req_path that looks like `[/:target]/.*`
     if req_path.get(0).copied() == Some(&krate.metadata.default_target) {
-        return redirect(&name, &version, &req_path[1..]);
+        return redirect(&name, &version_or_latest, &req_path[1..]);
     }
 
     // Create the path to access the file from
@@ -372,7 +384,7 @@ pub fn rustdoc_html_server_handler(req: &mut Request) -> IronResult<Response> {
                 req,
                 storage.rustdoc_file_exists(&name, &version, &path, krate.archive_storage)
             ) {
-                redirect(&name, &version, &req_path)
+                redirect(&name, &version_or_latest, &req_path)
             } else if req_path.get(0).map_or(false, |p| p.contains('-')) {
                 // This is a target, not a module; it may not have been built.
                 // Redirect to the default target and show a search page instead of a hard 404.
@@ -547,10 +559,16 @@ pub fn target_redirect_handler(req: &mut Request) -> IronResult<Response> {
     let base = redirect_base(req);
     let updater = extension!(req, RepositoryStatsUpdater);
 
-    let crate_details = match CrateDetails::new(&mut conn, name, version, updater) {
-        Some(krate) => krate,
-        None => return Err(Nope::VersionNotFound.into()),
+    let version_or_latest = if req.url.path().get(1) == Some(&"latest") {
+        "latest"
+    } else {
+        version
     };
+    let crate_details =
+        match CrateDetails::new(&mut conn, name, version, version_or_latest, updater) {
+            Some(krate) => krate,
+            None => return Err(Nope::VersionNotFound.into()),
+        };
 
     //   [crate, :name, :version, target-redirect, :target, *path]
     // is transformed to
@@ -586,10 +604,10 @@ pub fn target_redirect_handler(req: &mut Request) -> IronResult<Response> {
     };
 
     let url = format!(
-        "{base}/{name}/{version}/{path}",
+        "{base}/{name}/{version_or_latest}/{path}",
         base = base,
         name = name,
-        version = version,
+        version_or_latest = version_or_latest,
         path = path
     );
 

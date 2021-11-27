@@ -537,7 +537,12 @@ pub(crate) struct MetaData {
 }
 
 impl MetaData {
-    fn from_crate(conn: &mut Client, name: &str, version: &str) -> Option<MetaData> {
+    fn from_crate(
+        conn: &mut Client,
+        name: &str,
+        version: &str,
+        version_or_latest: &str,
+    ) -> Option<MetaData> {
         let rows = conn
             .query(
                 "SELECT crates.name,
@@ -560,7 +565,7 @@ impl MetaData {
         Some(MetaData {
             name: row.get(0),
             version: row.get(1),
-            version_or_latest: "latest".to_string(), //XXX
+            version_or_latest: version_or_latest.to_string(),
             description: row.get(2),
             target_name: row.get(3),
             rustdoc_status: row.get(4),

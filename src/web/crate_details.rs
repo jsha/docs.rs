@@ -79,6 +79,7 @@ impl CrateDetails {
         conn: &mut Client,
         name: &str,
         version: &str,
+        version_or_latest: &str,
         up: &RepositoryStatsUpdater,
     ) -> Option<CrateDetails> {
         // get all stuff, I love you rustfmt
@@ -150,8 +151,7 @@ impl CrateDetails {
         let metadata = MetaData {
             name: krate.get("name"),
             version: krate.get("version"),
-            ///XXX
-            version_or_latest: "latest".to_string(),
+            version_or_latest: version_or_latest.to_string(),
             description: krate.get("description"),
             rustdoc_status: krate.get("rustdoc_status"),
             target_name: krate.get("target_name"),
@@ -293,20 +293,11 @@ pub fn crate_details_handler(req: &mut Request) -> IronResult<Response> {
 
     let mut conn = extension!(req, Pool).get()?;
 
-    match match_version(&mut conn, name, req_version).and_then(|m| m.assume_exact())? {
-        MatchSemver::Exact((version, _)) => {
-            let updater = extension!(req, RepositoryStatsUpdater);
-            let details = cexpect!(req, CrateDetails::new(&mut conn, name, &version, updater));
-
-            CrateDetailsPage { details }.into_response(req)
-        }
-
-        MatchSemver::Latest((version, _)) => {
-            let updater = extension!(req, RepositoryStatsUpdater);
-            let details = cexpect!(req, CrateDetails::new(&mut conn, name, &version, updater));
-
-            CrateDetailsPage { details }.into_response(req)
-        }
+    let found_version =
+        match_version(&mut conn, name, req_version).and_then(|m| m.assume_exact())?;
+    let (version, version_or_latest) = match found_version {
+        MatchSemver::Exact((version, _)) => (version.clone(), version),
+        MatchSemver::Latest((version, _)) => (version, "latest".to_string()),
         MatchSemver::Semver((version, _)) => {
             let url = ctry!(
                 req,
@@ -318,9 +309,17 @@ pub fn crate_details_handler(req: &mut Request) -> IronResult<Response> {
                 )),
             );
 
-            Ok(super::redirect(url))
+            return Ok(super::redirect(url));
         }
-    }
+    };
+
+    let updater = extension!(req, RepositoryStatsUpdater);
+    let details = cexpect!(
+        req,
+        CrateDetails::new(&mut conn, name, &version, &version_or_latest, updater)
+    );
+
+    CrateDetailsPage { details }.into_response(req)
 }
 
 #[cfg(test)]

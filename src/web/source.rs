@@ -130,12 +130,17 @@ impl FileList {
                 }
             });
 
+            let version_or_latest = if req_path.ends_with("/latest/source/") {
+                "latest"
+            } else {
+                version
+            };
+
             Some(FileList {
                 metadata: MetaData {
                     name: rows[0].get(0),
                     version: rows[0].get(1),
-                    // XXX
-                    version_or_latest: "latest".to_string(),
+                    version_or_latest: version_or_latest.to_string(),
                     description: rows[0].get(2),
                     target_name: rows[0].get(3),
                     rustdoc_status: rows[0].get(4),

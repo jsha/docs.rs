@@ -29,10 +29,10 @@ pub fn build_features_handler(req: &mut Request) -> IronResult<Response> {
     let req_version = router.find("version");
 
     let mut conn = extension!(req, Pool).get()?;
-    let version =
+    let (version, version_or_latest) =
         match match_version(&mut conn, name, req_version).and_then(|m| m.assume_exact())? {
-            MatchSemver::Exact((version, _)) => version,
-            MatchSemver::Latest((version, _)) => version,
+            MatchSemver::Exact((version, _)) => (version.clone(), version),
+            MatchSemver::Latest((version, _)) => (version, "latest".to_string()),
 
             MatchSemver::Semver((version, _)) => {
                 let url = ctry!(
@@ -70,7 +70,10 @@ pub fn build_features_handler(req: &mut Request) -> IronResult<Response> {
     }
 
     FeaturesPage {
-        metadata: cexpect!(req, MetaData::from_crate(&mut conn, name, &version)),
+        metadata: cexpect!(
+            req,
+            MetaData::from_crate(&mut conn, name, &version, &version_or_latest)
+        ),
         features,
         default_len,
     }
