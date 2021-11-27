@@ -983,7 +983,7 @@ mod tests {
     }
 
     #[test]
-    fn crate_redirects_to_latest() {
+    fn latest_url() {
         wrapper(|env| {
             env.fake_release()
                 .name("dummy")
@@ -995,11 +995,26 @@ mod tests {
                 .create()?;
             let web = env.frontend();
 
-            let response = env.frontend().get("/crate/dummy/latest").send()?;
-            assert!(response.status().is_success());
+            let resp = env.frontend().get("/crate/dummy/latest").send()?;
+            assert!(resp.status().is_success());
+            assert!(resp.url().as_str().ends_with("/crate/dummy/latest"));
+            let body = String::from_utf8(resp.bytes().unwrap().to_vec()).unwrap();
+            assert!(body.contains("<a href=\"/crate/dummy/latest/features\""));
+            assert!(body.contains("<a href=\"/crate/dummy/latest/builds\""));
+            assert!(body.contains("<a href=\"/crate/dummy/latest/source/\""));
+            assert!(body.contains("<a href=\"/crate/dummy/latest\""));
 
             assert_redirect("/crate/dummy/latest/", "/crate/dummy/latest", web)?;
             assert_redirect("/crate/dummy", "/crate/dummy/latest", web)?;
+
+            let resp_json = env
+                .frontend()
+                .get("/crate/aquarelle/latest/builds.json")
+                .send()?;
+            assert!(resp_json
+                .url()
+                .as_str()
+                .ends_with("/crate/aquarelle/latest/builds.json"));
 
             Ok(())
         });

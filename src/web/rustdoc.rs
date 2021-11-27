@@ -793,6 +793,26 @@ mod test {
         });
     }
 
+    #[test]
+    fn latest_url() {
+        wrapper(|env| {
+            env.fake_release()
+                .name("dummy")
+                .version("0.1.0")
+                .archive_storage(true)
+                .rustdoc_file("dummy/index.html")
+                .create()?;
+
+            let resp = env.frontend().get("/dummy/latest/dummy/").send()?;
+            assert!(resp.url().as_str().ends_with("/dummy/latest/dummy/"));
+            let body = String::from_utf8(resp.bytes().unwrap().to_vec()).unwrap();
+            println!("body {}", body);
+            assert!(body.contains("<a href=\"/crate/dummy/latest/source/\""));
+            assert!(body.contains("<a href=\"/crate/dummy/latest\""));
+            Ok(())
+        })
+    }
+
     #[test_case(true)]
     #[test_case(false)]
     fn go_to_latest_version(archive_storage: bool) {

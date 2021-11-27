@@ -50,7 +50,13 @@ impl FileList {
     /// This function is only returning FileList for requested directory. If is empty,
     /// it will return list of files (and dirs) for root directory. req_path must be a
     /// directory or empty for root directory.
-    fn from_path(conn: &mut Client, name: &str, version: &str, req_path: &str) -> Option<FileList> {
+    fn from_path(
+        conn: &mut Client,
+        name: &str,
+        version: &str,
+        version_or_latest: &str,
+        req_path: &str,
+    ) -> Option<FileList> {
         let rows = conn
             .query(
                 "SELECT crates.name,
@@ -130,12 +136,6 @@ impl FileList {
                 }
             });
 
-            let version_or_latest = if req_path.ends_with("/latest/source/") {
-                "latest"
-            } else {
-                version
-            };
-
             Some(FileList {
                 metadata: MetaData {
                     name: rows[0].get(0),
@@ -185,8 +185,9 @@ pub fn source_browser_handler(req: &mut Request) -> IronResult<Response> {
         // use that instead
         crate_name = new_name;
     }
-    let version = match v.version {
-        MatchSemver::Latest((version, _)) | MatchSemver::Exact((version, _)) => version,
+    let (version, version_or_latest) = match v.version {
+        MatchSemver::Latest((version, _)) => (version, "latest".to_string()),
+        MatchSemver::Exact((version, _)) => (version.clone(), version),
         MatchSemver::Semver((version, _)) => {
             let url = ctry!(
                 req,
@@ -277,8 +278,14 @@ pub fn source_browser_handler(req: &mut Request) -> IronResult<Response> {
         (None, false)
     };
 
-    let file_list = FileList::from_path(&mut conn, crate_name, &version, &req_path)
-        .ok_or(Nope::ResourceNotFound)?;
+    let file_list = FileList::from_path(
+        &mut conn,
+        crate_name,
+        &version,
+        &version_or_latest,
+        &req_path,
+    )
+    .ok_or(Nope::ResourceNotFound)?;
 
     SourcePage {
         file_list,
@@ -328,6 +335,28 @@ mod tests {
                 .create()?;
             let web = env.frontend();
             assert_success("/crate/fake/0.1.0/source/", web)?;
+            Ok(())
+        });
+    }
+
+    #[test]
+    fn latest_contains_links_to_latest() {
+        wrapper(|env| {
+            env.fake_release()
+                .archive_storage(true)
+                .name("fake")
+                .version("0.1.0")
+                .source_file(".cargo-ok", b"ok")
+                .source_file("README.md", b"hello")
+                .create()?;
+            let resp = env.frontend().get("/crate/fake/latest/source/").send()?;
+            assert!(resp.url().as_str().ends_with("/crate/fake/latest/source/"));
+            let body = String::from_utf8(resp.bytes().unwrap().to_vec()).unwrap();
+            assert!(body.contains("<a href=\"/crate/fake/latest/builds\""));
+            assert!(body.contains("<a href=\"/crate/fake/latest/source/\""));
+            assert!(body.contains("<a href=\"/crate/fake/latest\""));
+            assert!(body.contains("<a href=\"/crate/fake/latest/features\""));
+
             Ok(())
         });
     }
