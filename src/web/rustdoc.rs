@@ -447,11 +447,8 @@ pub fn rustdoc_html_server_handler(req: &mut Request) -> IronResult<Response> {
         (target, inner_path.join("/"))
     };
 
-    // If the requested crate version is the most recent, use it to build the url
-    let mut latest_path = if is_latest_version {
-        format!("/{}/{}", name, latest_version)
-    // If the requested version is not the latest, then find the path of the latest version for the `Go to latest` link
-    } else if latest_release.build_status {
+    // Find the path of the latest version for the `Go to latest` and `Permalink` links
+    let mut latest_path = if latest_release.build_status {
         let target = if target.is_empty() {
             &krate.metadata.default_target
         } else {
@@ -806,9 +803,9 @@ mod test {
             let resp = env.frontend().get("/dummy/latest/dummy/").send()?;
             assert!(resp.url().as_str().ends_with("/dummy/latest/dummy/"));
             let body = String::from_utf8(resp.bytes().unwrap().to_vec()).unwrap();
-            println!("body {}", body);
             assert!(body.contains("<a href=\"/crate/dummy/latest/source/\""));
             assert!(body.contains("<a href=\"/crate/dummy/latest\""));
+            assert!(body.contains("<a href=\"/crate/dummy/0.1.0/target-redirect/x86_64-unknown-linux-gnu/dummy/index.html\""));
             Ok(())
         })
     }

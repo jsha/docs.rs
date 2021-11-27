@@ -22,6 +22,14 @@ extra whitespace unremovable, need to use html tags unaffacted by whitespace T_T
                         <span id="clipboard" class="fa-svg fa-svg-fw" title="Copy crate name and version information">{%- include "clipboard.svg" -%}</span>
                     </li>
 
+                    {%- if metadata.version_or_latest == "latest" -%}
+                    <li class="pure-menu-item">
+                        <a href="{{latest_path | safe}}" class="pure-menu-link description" title="Get a link to this specific version">
+                            {{ "link" | fas }} Permalink
+                        </a>
+                    </li>
+                    {%- endif -%}
+
                     <li class="pure-menu-item">
                         <a href="{{ crate_url | safe }}" class="pure-menu-link description" title="See {{ krate.name }} in docs.rs">
                             {{ "cube" | fas(fw=true) }} Docs.rs crate page
