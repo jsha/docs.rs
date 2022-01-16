@@ -158,9 +158,9 @@ impl RustwideBuilder {
         // }
 
         self.rustc_version = self.detect_rustc_version()?;
-        if old_version.as_deref() != Some(&self.rustc_version) {
-            self.add_essential_files()?;
-        }
+        // if old_version.as_deref() != Some(&self.rustc_version) {
+        self.add_essential_files()?;
+        // }
 
         Ok(())
     }
@@ -189,6 +189,8 @@ impl RustwideBuilder {
         let mut conn = self.db.get()?;
         let limits = Limits::for_crate(&mut conn, DUMMY_CRATE_NAME)?;
 
+        let output = format!("essential-files-{}", rustc_version);
+        warn!("writing essential files to {}", output);
         let mut build_dir = self
             .workspace
             .build_dir(&format!("essential-files-{}", rustc_version));
