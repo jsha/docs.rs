@@ -71,7 +71,8 @@ impl RustwideBuilder {
             .purge_all_build_dirs()
             .map_err(FailureError::compat)?;
 
-        let toolchain = Toolchain::dist(&config.toolchain);
+        let toolchain = Toolchain::ci("453f02ec8504eac7e18c9b0c696bdf69040f0f0c", false);
+        // let toolchain = Toolchain::dist(&config.toolchain);
 
         Ok(RustwideBuilder {
             workspace,
@@ -107,54 +108,54 @@ impl RustwideBuilder {
             .map(|&t| t.to_string()) // &str has a specialized ToString impl, while &&str goes through Display
             .collect::<HashSet<_>>();
 
-        let installed_targets = match self.toolchain.installed_targets(&self.workspace) {
-            Ok(targets) => targets,
-            Err(err) => {
-                if let Some(&ToolchainError::NotInstalled) = err.downcast_ref::<ToolchainError>() {
-                    Vec::new()
-                } else {
-                    return Err(err.compat().into());
-                }
-            }
-        };
+        // let installed_targets = match self.toolchain.installed_targets(&self.workspace) {
+        //     Ok(targets) => targets,
+        //     Err(err) => {
+        //         if let Some(&ToolchainError::NotInstalled) = err.downcast_ref::<ToolchainError>() {
+        //             Vec::new()
+        //         } else {
+        //             return Err(err.compat().into());
+        //         }
+        //     }
+        // };
 
-        // The extra targets are intentionally removed *before* trying to update.
-        //
-        // If a target is installed locally and it goes missing the next update, rustup will block
-        // the update to avoid leaving the system in a broken state. This is not a behavior we want
-        // though when we also remove the target from the list managed by docs.rs: we want that
-        // target gone, and we don't care if it's missing in the next update.
-        //
-        // Removing it beforehand works fine, and prevents rustup from blocking the update later in
-        // the method.
-        //
-        // Note that this means that non tier-one targets will be uninstalled on every update,
-        // and will not be reinstalled until explicitly requested by a crate.
-        for target in installed_targets {
-            if !targets_to_install.remove(&target) {
-                self.toolchain
-                    .remove_target(&self.workspace, &target)
-                    .map_err(FailureError::compat)?;
-            }
-        }
+        // // The extra targets are intentionally removed *before* trying to update.
+        // //
+        // // If a target is installed locally and it goes missing the next update, rustup will block
+        // // the update to avoid leaving the system in a broken state. This is not a behavior we want
+        // // though when we also remove the target from the list managed by docs.rs: we want that
+        // // target gone, and we don't care if it's missing in the next update.
+        // //
+        // // Removing it beforehand works fine, and prevents rustup from blocking the update later in
+        // // the method.
+        // //
+        // // Note that this means that non tier-one targets will be uninstalled on every update,
+        // // and will not be reinstalled until explicitly requested by a crate.
+        // for target in installed_targets {
+        //     if !targets_to_install.remove(&target) {
+        //         self.toolchain
+        //             .remove_target(&self.workspace, &target)
+        //             .map_err(FailureError::compat)?;
+        //     }
+        // }
 
         self.toolchain
             .install(&self.workspace)
             .map_err(FailureError::compat)?;
 
-        for target in &targets_to_install {
-            self.toolchain
-                .add_target(&self.workspace, target)
-                .map_err(FailureError::compat)?;
-        }
+        // for target in &targets_to_install {
+        //     self.toolchain
+        //         .add_target(&self.workspace, target)
+        //         .map_err(FailureError::compat)?;
+        // }
         // NOTE: rustup will automatically refuse to update the toolchain
         // if `rustfmt` is not available in the newer version
         // NOTE: this ignores the error so that you can still run a build without rustfmt.
         // This should only happen if you run a build for the first time when rustfmt isn't available.
-        if let Err(err) = self.toolchain.add_component(&self.workspace, "rustfmt") {
-            log::warn!("failed to install rustfmt: {}", err);
-            log::info!("continuing anyway, since this must be the first build");
-        }
+        // if let Err(err) = self.toolchain.add_component(&self.workspace, "rustfmt") {
+        //     log::warn!("failed to install rustfmt: {}", err);
+        //     log::info!("continuing anyway, since this must be the first build");
+        // }
 
         self.rustc_version = self.detect_rustc_version()?;
         if old_version.as_deref() != Some(&self.rustc_version) {
